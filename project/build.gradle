@@ -13,7 +13,7 @@ allprojects {
 
     version = '1.0'
     ext {
-        appName = "snake-game"
+        appName = "snake_game"
         gdxVersion = '1.7.1'
         roboVMVersion = '1.9.0'
         box2DLightsVersion = '1.4'
@@ -37,7 +37,6 @@ project(":desktop") {
         compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
         compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
-        compile "de.tomgrill.gdxdialogs:gdx-dialogs-desktop:1.0.0"
     }
 }
 
@@ -48,7 +47,6 @@ project(":core") {
     dependencies {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
-        compile "de.tomgrill.gdxdialogs:gdx-dialogs-core:1.0.0"
     }
 }
 
