@@ -3,6 +3,7 @@ package com.fknstudio.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -24,6 +25,7 @@ public class MyGdxGame extends ApplicationAdapter {
     // Game model object
     ISnakeGame snakeGame;
     GameField gameField;
+    Sound backgroundSound;
 
     // Tick time control
     float tickTimeLeft = 0;
@@ -41,8 +43,8 @@ public class MyGdxGame extends ApplicationAdapter {
     final Color backColor = new Color(0.14f, 0.43f, 0.27f, 0);
     final Color snakeColor = new Color(1.0f, 0.95f, 1.0f, 0);
     final Color growFoodColor = new Color(0.5f, 0.7f, 0.6f, 0);
-    final Color speedFoodColor = new Color(0.4f, 0.5f, 0.7f, 0);
-    final Color scoreFoodColor = new Color(0.7f, 0.5f, 0.4f, 0);
+    final Color speedFoodColor = new Color(0.255f, 0.412f, 0.882f,0);
+    final Color scoreFoodColor = new Color(0.69f, 0.25f ,0.21f,0);
 
     // Renders
     ShapeRenderer shapeRenderer;
@@ -63,6 +65,12 @@ public class MyGdxGame extends ApplicationAdapter {
         batch = new SpriteBatch();
         font = new BitmapFont();
         font.setColor(Color.WHITE);
+
+        //Initializing background sound
+        new Thread(() -> {
+            backgroundSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/dj_snake.mp3"));
+            backgroundSound.loop();
+        }).start();
     }
 
     private void newGame() {

@@ -41,13 +41,6 @@ public class GameField {
             }
         }
 
-        // Snake
-        ISnakeBodyElement element = snakeGame.getSnake().getHead();
-        while (element != null) {
-            getCell(element.getX(), element.getY()).setNewType(CellType.SNAKE);
-            element = element.getNext();
-        }
-
         // Food
         for (IBonus bonus : snakeGame.getBonuses()) {
             switch (bonus.getType()) {
@@ -60,6 +53,13 @@ public class GameField {
                 case SCORE:
                     getCell(bonus.getX(), bonus.getY()).setNewType(CellType.SCOREFOOD);
             }
+        }
+
+        // Snake
+        ISnakeBodyElement element = snakeGame.getSnake().getHead();
+        while (element != null) {
+            getCell(element.getX(), element.getY()).setNewType(CellType.SNAKE);
+            element = element.getNext();
         }
 
         // Head process
@@ -105,14 +105,6 @@ public class GameField {
 
         oldTailX = newTailX;
         oldTailY = newTailY;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public int getHeight() {
-        return height;
     }
 
     public GameFieldCell getCell(int i, int j) {
