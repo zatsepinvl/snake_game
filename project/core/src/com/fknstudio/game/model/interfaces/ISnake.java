@@ -13,6 +13,11 @@ public interface ISnake extends IDynamicGameObject {
     ISnakeBodyElement getHead();
 
     /**
+     * Return the tail
+     */
+    ISnakeBodyElement getTail();
+
+    /**
      * Rotate snake to the {@link Direction}
      */
     void rotate(Direction direction);
@@ -22,4 +27,6 @@ public interface ISnake extends IDynamicGameObject {
      * Resize snake body to count elements
      */
     void resize(int count);
+
+    ISnakeBodyElement getAheadHead();
 }
