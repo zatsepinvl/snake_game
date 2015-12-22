@@ -5,5 +5,6 @@ package com.fknstudio.game.model.enums;
  */
 public enum BonusType {
     SPEED,
-    SIZE;
+    SIZE,
+    SCORE
 }

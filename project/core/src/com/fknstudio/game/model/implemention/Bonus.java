@@ -1,19 +1,23 @@
 package com.fknstudio.game.model.implemention;
 
+import com.fknstudio.game.model.enums.BonusType;
 import com.fknstudio.game.model.interfaces.IBonus;
 
 /**
  * Created by Vladimir on 17.12.2015.
  */
-public abstract class Bonus extends GameObject implements IBonus {
+public class Bonus extends GameObject implements IBonus {
 
     private int value;
-    private int liveTime;
+    private int timeLeft;
+    private BonusType type;
 
-    public Bonus(int x, int y, int liveTime, int bonusValue) {
+    public Bonus(int x, int y, int timeLeft, int bonusValue, BonusType bonusType) {
         super(x, y);
-        this.liveTime = liveTime;
+        this.timeLeft = timeLeft;
         this.value=bonusValue;
+
+        setType(bonusType);
     }
 
     @Override
@@ -23,12 +27,21 @@ public abstract class Bonus extends GameObject implements IBonus {
 
 
     @Override
-    public long getLiveTime() {
-        return liveTime;
+    public long getTimeLeft() {
+        return timeLeft;
     }
 
     @Override
     public void tick() {
-        liveTime--;
+        timeLeft--;
+    }
+
+    @Override
+    public BonusType getType() {
+        return type;
+    }
+
+    public void setType(BonusType type) {
+        this.type = type;
     }
 }

@@ -14,18 +14,19 @@ public class Snake implements ISnake {
     private int kx;
     private int ky;
 
+    private int growSegmentsLeft = 0;
+
     public Snake(int countBodyElements, int startX, int startY) {
         if (countBodyElements > 0) {
             head = new SnakeBodyElement(startX, startY);
-            ISnakeBodyElement pointer = head;
-            addNewElements(pointer, countBodyElements);
+            generateSnake(head, countBodyElements); // Generating initial snake
             kx = 0;
             ky = 1;
             this.direction = Direction.UP;
         }
     }
 
-    private void addNewElements(ISnakeBodyElement pointer, int count) {
+    private void generateSnake(ISnakeBodyElement pointer, int count) {
         for (int i = 0; i < count; i++) {
             ISnakeBodyElement snakeBodyElement = new SnakeBodyElement(pointer.getX(), pointer.getY() - 1);
             pointer.setNext(snakeBodyElement);
@@ -36,6 +37,15 @@ public class Snake implements ISnake {
     @Override
     public ISnakeBodyElement getHead() {
         return head;
+    }
+
+    @Override
+    public ISnakeBodyElement getTail() {
+        ISnakeBodyElement tail = head;
+        while (tail.getNext() != null) {
+            tail = tail.getNext();
+        }
+        return tail;
     }
 
 
@@ -76,15 +86,31 @@ public class Snake implements ISnake {
 
     @Override
     public void resize(int newLength) {
-        ISnakeBodyElement pointer = head;
-        while (pointer.getNext() != null) {
-            pointer = pointer.getNext();
-        }
-        addNewElements(pointer, newLength);
+        growSegmentsLeft += newLength;
+    }
+
+    @Override
+    public ISnakeBodyElement getAheadHead() {
+        return new SnakeBodyElement(head.getX() + kx, head.getY() + ky);
+    }
+
+    private void growHead() {
+        ISnakeBodyElement oldHead = head;
+        head = new SnakeBodyElement(oldHead.getX() + kx, oldHead.getY() + ky);
+        head.setNext(oldHead);
     }
 
     @Override
     public void tick() {
+        if (growSegmentsLeft > 0) {
+            growHead();
+            growSegmentsLeft--;
+        } else {
+            move();
+        }
+    }
+
+    private void move() {
         int nextX = head.getX();
         int nextY = head.getY();
         int tempX;

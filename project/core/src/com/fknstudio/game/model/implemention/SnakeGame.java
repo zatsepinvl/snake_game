@@ -15,12 +15,14 @@ import java.util.Random;
  */
 public class SnakeGame implements ISnakeGame {
     private static final int SNAKE_SIZE_DEFAULT = 10;
-    private static final int MAX_FOOD_COUNT = 8;
-    private static final int FOOD_LIVE_TIME = 100;
+    private static final int MAX_FOOD_COUNT = 10;
+    private static final int FOOD_LIVE_TIME = 60;
     private static final int FOOD_MAX_SIZE_BONUS = 2;
     private static final int FOOD_MIN_SIZE_BONUS = 1;
-    private static final int FOOD_MAX_SPEED_BONUS = 2;
-    private static final int FOOD_MIN_SPEED_BONUS = -1;
+    private static final int FOOD_MAX_SPEED_BONUS = 6;
+    private static final int FOOD_MIN_SPEED_BONUS = 3;
+    private static final int FOOD_MAX_SCORE_BONUS = 6;
+    private static final int FOOD_MIN_SCORE_BONUS = 3;
     private ISnake snake;
     private List<IBonus> bonuses;
     private int fieldW;
@@ -28,11 +30,17 @@ public class SnakeGame implements ISnakeGame {
     private GameState gameState;
     private Random random;
 
+    private int score = 0;
+    private int totalTicks = 0;
+    private float tickPause = 0.5f;
+
+    private int speedBonusTimeLeft = 0;
+
     public SnakeGame(int fieldWidth, int fieldHeight) {
         this.fieldW = fieldWidth;
         this.fieldH = fieldHeight;
         snake = new Snake(SNAKE_SIZE_DEFAULT, fieldW / 2, fieldH / 2);
-        bonuses = new LinkedList<>();
+        bonuses = new LinkedList<IBonus>();
         gameState = GameState.STARTED;
         random = new Random();
 
@@ -59,34 +67,90 @@ public class SnakeGame implements ISnakeGame {
         return gameState;
     }
 
+    @Override
+    public int getScore() {
+        return score;
+    }
 
     @Override
-    public IBonus Tick() {
+    public int getTotalTicks() {
+        return totalTicks;
+    }
+
+    @Override
+    public void Tick() {
         if (gameState != GameState.FINISHED) {
-            generateRandomFood();
-            checkAndTickBonuses();
-            snake.tick();
+            // Checking for game over
             if (checkIsGameOver()) {
                 gameState = GameState.FINISHED;
+                return;
             }
-            return eatBonuses();
+
+            totalTicks++;
+            if (tickPause > 0.05) {
+                tickPause -= 0.002f;
+            }
+
+            // Processing food
+            generateRandomFood();
+            checkAndTickBonuses();
+
+
+            // Processing bonuses
+            if (speedBonusTimeLeft > 0) {
+                speedBonusTimeLeft--;
+            }
+
+            // Checking for bonus ahead head
+            IBonus eatenBonus = eatBonuses();
+            if (eatenBonus != null) {
+                switch (eatenBonus.getType()) {
+                    case SIZE:
+                        snake.resize(eatenBonus.getValue());
+                        score += eatenBonus.getValue();
+                        break;
+                    case SPEED:
+                        speedBonusTimeLeft += eatenBonus.getValue();
+                        break;
+                    case SCORE:
+                        score += eatenBonus.getValue();
+                        break;
+                }
+            }
+
+            // Snake move process
+            snake.tick();
         }
-        return null;
+    }
+
+    @Override
+    public float getTickPause() {
+        return tickPause + (speedBonusTimeLeft != 0 ? 0.5f : 0);
     }
 
     private void generateRandomFood() {
         if (bonuses.size() < MAX_FOOD_COUNT) {
-            int temp = random.nextInt(2);
+            int temp = random.nextInt(10);
             int x = random.nextInt(fieldW - 1) + 1;
             int y = random.nextInt(fieldH - 1) + 1;
             IBonus food = null;
             switch (temp) {
-                case 0: {
-                    food = new SizeBonus(x, y, FOOD_LIVE_TIME, random.nextInt(FOOD_MAX_SIZE_BONUS - FOOD_MIN_SIZE_BONUS) + FOOD_MIN_SIZE_BONUS);
+                case 0: {   // Bonus probability is lower
+                    food = new Bonus(x, y, FOOD_LIVE_TIME,
+                            random.nextInt(FOOD_MAX_SPEED_BONUS - FOOD_MIN_SPEED_BONUS) + FOOD_MIN_SPEED_BONUS,
+                            BonusType.SPEED);
                     break;
                 }
                 case 1: {
-                    food = new SpeedBonus(x, y, FOOD_LIVE_TIME, random.nextInt(FOOD_MAX_SPEED_BONUS - FOOD_MIN_SPEED_BONUS) + FOOD_MIN_SPEED_BONUS);
+                    food = new Bonus(x, y, FOOD_LIVE_TIME,
+                            random.nextInt(FOOD_MAX_SCORE_BONUS - FOOD_MIN_SCORE_BONUS) + FOOD_MIN_SCORE_BONUS,
+                            BonusType.SCORE);
+                    break;
+                }
+                default: {
+                    food = new Bonus(x, y, FOOD_LIVE_TIME,
+                            random.nextInt(FOOD_MAX_SIZE_BONUS - FOOD_MIN_SIZE_BONUS) + FOOD_MIN_SIZE_BONUS,
+                            BonusType.SIZE);
                     break;
                 }
             }
@@ -100,19 +164,19 @@ public class SnakeGame implements ISnakeGame {
         while (iterator.hasNext()) {
             IBonus bonus = iterator.next();
             bonus.tick();
-            if (bonus.getLiveTime() <= 0) {
+            if (bonus.getTimeLeft() <= 0) {
                 iterator.remove();
             }
         }
     }
 
     private IBonus eatBonuses() {
-        ISnakeBodyElement head = snake.getHead();
+        ISnakeBodyElement behindHead = snake.getAheadHead();
         Iterator<IBonus> iterator = bonuses.iterator();
         while (iterator.hasNext()) {
             IBonus bonus = iterator.next();
-            if (isCollision(head, bonus)) {
-                if (bonus.getBonusType() == BonusType.SIZE) {
+            if (isCollision(behindHead, bonus)) {
+                if (bonus.getType() == BonusType.SIZE) {
                     snake.resize(bonus.getValue());
                 }
                 iterator.remove();
@@ -123,19 +187,23 @@ public class SnakeGame implements ISnakeGame {
     }
 
     private boolean checkIsGameOver() {
-        ISnakeBodyElement head = snake.getHead();
-        if ((head.getX()) < 0 || (head.getX() > fieldW)) {
+        // Check border collision
+        ISnakeBodyElement aheadHead = snake.getAheadHead();
+        if ((aheadHead.getX()) < 0 || (aheadHead.getX() > fieldW - 1)) {
             return true;
-        } else if ((head.getY() < 0) || (head.getY() > fieldH)) {
+        } else if ((aheadHead.getY() < 0) || (aheadHead.getY() > fieldH - 1)) {
             return true;
         }
-        ISnakeBodyElement pointer = head.getNext();
+
+        // Check snake collision
+        ISnakeBodyElement pointer = snake.getHead().getNext();
         while (pointer != null) {
-            if (isCollision(head, pointer)) {
+            if (isCollision(snake.getHead(), pointer)) {
                 return true;
             }
             pointer = pointer.getNext();
         }
+
         return false;
     }
 

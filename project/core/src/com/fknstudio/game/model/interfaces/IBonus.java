@@ -13,10 +13,9 @@ public interface IBonus extends IGameObject, IDynamicGameObject {
     int getValue();
 
     /**
-     *
      * @return the value of live time in game ticks
      */
-    long getLiveTime();
+    long getTimeLeft();
 
-    BonusType getBonusType();
+    BonusType getType();
 }

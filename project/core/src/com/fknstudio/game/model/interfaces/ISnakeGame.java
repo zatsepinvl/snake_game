@@ -9,17 +9,15 @@ import java.util.List;
  * Created by Vladimir on 17.12.2015.
  */
 public interface ISnakeGame {
-    ISnake getSnake();
 
+    ISnake getSnake();
     List<IBonus> getBonuses();
 
-    void setDirection(Direction direction);
-
     GameState getGameState();
+    int getScore();
+    int getTotalTicks();
 
-    /**
-     * @return bonus has been eaten by snake
-     */
-    IBonus Tick();
-
+    void setDirection(Direction direction);
+    void Tick();
+    float getTickPause();
 }
