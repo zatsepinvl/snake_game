@@ -28,7 +28,7 @@ public class MyGdxGame extends ApplicationAdapter {
     public void create() {
         batch = new SpriteBatch();
         font = new BitmapFont();
-        snakeGame = new SnakeGame(50, 50);
+        snakeGame = new SnakeGame(500, 500);
         snake = snakeGame.getSnake();
         shapeRenderer = new ShapeRenderer();
     }
@@ -53,8 +53,8 @@ public class MyGdxGame extends ApplicationAdapter {
             snakeGame.Tick();
             timeFreeze = 0;
         }
-        int kx = Gdx.graphics.getWidth() / 50;
-        int ky = Gdx.graphics.getHeight() / 50;
+        int kx = Gdx.graphics.getWidth() / 500;
+        int ky = Gdx.graphics.getHeight() / 500;
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.identity();
         shapeRenderer.setColor(Color.BLUE);
