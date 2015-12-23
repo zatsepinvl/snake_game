@@ -6,19 +6,16 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.fknstudio.game.model.enums.Direction;
 import com.fknstudio.game.model.enums.GameState;
 import com.fknstudio.game.model.implemention.SnakeGame;
-import com.fknstudio.game.model.interfaces.IBonus;
-import com.fknstudio.game.model.interfaces.ISnakeBodyElement;
 import com.fknstudio.game.model.interfaces.ISnakeGame;
 import com.fknstudio.game.view.CellType;
 import com.fknstudio.game.view.GameField;
-
-import java.util.Random;
 
 
 public class MyGdxGame extends ApplicationAdapter {
@@ -46,23 +43,31 @@ public class MyGdxGame extends ApplicationAdapter {
     final Color backColor = new Color(0.14f, 0.43f, 0.27f, 0);
     final Color snakeColor = new Color(1.0f, 0.95f, 1.0f, 0);
     final Color growFoodColor = new Color(0.5f, 0.7f, 0.6f, 0);
-    final Color speedFoodColor = new Color(0.255f, 0.412f, 0.882f,0);
-    final Color scoreFoodColor = new Color(0.69f, 0.25f ,0.21f,0);
+    final Color speedFoodColor = new Color(0.255f, 0.412f, 0.882f, 0);
+    final Color scoreFoodColor = new Color(0.69f, 0.25f, 0.21f, 0);
 
     // Renders
     ShapeRenderer shapeRenderer;
     private SpriteBatch batch;
     private BitmapFont font;
+    private boolean isResourceLoaded;
+    private Texture texture;
 
     // Previous game state for game over detection
     GameState oldGameState = GameState.STARTED;
 
     @Override
     public void create() {
-        //Initializing sounds
-        backgroundSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/funny_snake.mp3"));
-        looseSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/loose.mp3"));
-        
+        isResourceLoaded = false;
+        texture = new Texture(Gdx.files.internal("core/assets/splash_screen.jpg"));
+        //Initializing resources
+        new Thread(() -> {
+            backgroundSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/funny_snake.mp3"));
+            looseSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/loose.mp3"));
+            newGame();
+            isResourceLoaded = true;
+        }).start();
+
         // Cashing cell size
         cellWidth = Gdx.graphics.getWidth() / GAME_FIELD_WIDTH;
         cellHeight = Gdx.graphics.getHeight() / GAME_FIELD_HEIGHT;
@@ -72,8 +77,6 @@ public class MyGdxGame extends ApplicationAdapter {
         batch = new SpriteBatch();
         font = new BitmapFont();
         font.setColor(Color.WHITE);
-
-        newGame();
     }
 
     private void newGame() {
@@ -90,7 +93,12 @@ public class MyGdxGame extends ApplicationAdapter {
 
     @Override
     public void render() {
-
+        if (!isResourceLoaded) {
+            batch.begin();
+            batch.draw(texture, 0, 0);
+            batch.end();
+            return;
+        }
         // Check for new game
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE) && snakeGame.getGameState() == GameState.FINISHED) {
             newGame();
