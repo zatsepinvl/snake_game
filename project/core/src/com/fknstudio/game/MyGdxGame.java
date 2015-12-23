@@ -25,7 +25,10 @@ public class MyGdxGame extends ApplicationAdapter {
     // Game model object
     ISnakeGame snakeGame;
     GameField gameField;
+
+    // Sounds
     Sound backgroundSound;
+    Sound looseSound;
 
     // Tick time control
     float tickTimeLeft = 0;
@@ -51,11 +54,15 @@ public class MyGdxGame extends ApplicationAdapter {
     private SpriteBatch batch;
     private BitmapFont font;
 
+    // Previous game state for game over detection
+    GameState oldGameState = GameState.STARTED;
 
     @Override
     public void create() {
-        newGame();
-
+        //Initializing sounds
+        backgroundSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/funny_snake.mp3"));
+        looseSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/loose.mp3"));
+        
         // Cashing cell size
         cellWidth = Gdx.graphics.getWidth() / GAME_FIELD_WIDTH;
         cellHeight = Gdx.graphics.getHeight() / GAME_FIELD_HEIGHT;
@@ -66,17 +73,19 @@ public class MyGdxGame extends ApplicationAdapter {
         font = new BitmapFont();
         font.setColor(Color.WHITE);
 
-        //Initializing background sound
-        new Thread(() -> {
-            backgroundSound = Gdx.audio.newSound(Gdx.files.internal("core/assets/dj_snake.mp3"));
-            backgroundSound.loop();
-        }).start();
+        newGame();
     }
 
     private void newGame() {
         // Initializing models
         snakeGame = new SnakeGame(GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT);
         gameField = new GameField(GAME_FIELD_WIDTH, GAME_FIELD_HEIGHT);
+        backgroundSound.loop();
+    }
+
+    private void gameOver() {
+        backgroundSound.stop();
+        looseSound.play();
     }
 
     @Override
@@ -96,6 +105,12 @@ public class MyGdxGame extends ApplicationAdapter {
             snakeGame.Tick();
             tickTimeLeft = snakeGame.getTickPause();
             gameField.applyNewModelState(snakeGame);
+
+            // Game over detection
+            if (oldGameState == GameState.STARTED && snakeGame.getGameState() == GameState.FINISHED) {
+                gameOver();
+            }
+            oldGameState = snakeGame.getGameState();
         }
 
         // RENDER
